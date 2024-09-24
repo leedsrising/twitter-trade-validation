@@ -9,18 +9,14 @@ import {
   createStreamableValue
 } from 'ai/rsc'
 import { openai } from '@ai-sdk/openai'
+import { systemPrompt } from '@/lib/system-prompt'
 
 import {
   spinner,
-  BotCard,
   BotMessage,
   SystemMessage,
-  Stock,
-  Purchase
 } from '@/components/stocks'
 
-import { Events } from '@/components/stocks/events'
-import { Stocks } from '@/components/stocks/stocks'
 import {
   formatNumber,
   runAsyncFnWithoutBlocking,
@@ -125,22 +121,7 @@ async function submitUserMessage(content: string) {
   const result = await streamUI({
     model: openai('gpt-4o'),
     initial: <SpinnerMessage />,
-    system: `\
-    You are a twitter trade verification bot. You take twitter posts and turn them into trade orders.
-
-    Return your responses in the following format:
-    - ticker:{ticker}
-    - action:{action}
-    - when:{when}
-    - quantity:{quantity}
-    - price:{price}
-
-    If the post suggests a time range to take the position, 'when' should be the earliest date and time possible.
-
-    Only respond for actions the twitter post specifies to take. Do not recommend an action for stocks that are only recommended to be watched.
-
-    If any of the fields are not available, show 'N/A' for that field.
-    `,
+    system: systemPrompt,
     messages: [
       ...aiState.get().messages.map((message: any) => ({
         role: message.role,
@@ -251,3 +232,5 @@ export const getUIStateFromAIState = (aiState: Chat) => {
         ) : null
     }))
 }
+
+
